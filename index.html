@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router Console Simulator Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            color: #00ff00;
+        }
+        
+        .terminal {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,255,0,0.2);
+        }
+        
+        .header {
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5em;
+            color: #00ff00;
+        }
+        
+        .output {
+            background: #0a0a0a;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #00ff00;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .input-line {
+            display: flex;
+            align-items: center;
+            background: #0a0a0a;
+            padding: 10px;
+            border: 1px solid #00ff00;
+        }
+        
+        .prompt {
+            color: #00ff00;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        #commandInput {
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            flex: 1;
+            outline: none;
+        }
+        
+        .btn {
+            background: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        
+        .status-bar {
+            margin-top: 20px;
+            padding: 10px;
+            background: #0a0a0a;
+            border: 1px solid #00ff00;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        
+        .interface-panel {
+            background: #0a0a0a;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #00ff00;
+        }
+        
+        .interface-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 12px;
+            border: 1px solid #00ff00;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .interface-item:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+            background: #000;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border: 1px solid #000;
+        }
+        
+        .command-history {
+            color: #00ff00;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #00ff00;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <div class="header">
+            <h1>🔧 ROUTER CONSOLE v2.0</h1>
+            <span id="hostname-display" style="color: #00ff00; font-size: 18px;">Router></span>
+        </div>
+        
+        <div class="interface-panel">
+            <h3>📡 INTERFACES DISPONIBLES</h3>
+            <div id="interfaces">
+                <span class="interface-item" onclick="quickCommand('interface GigabitEthernet0/0')">GigabitEthernet0/0</span>
+                <span class="interface-item" onclick="quickCommand('interface GigabitEthernet0/1')">GigabitEthernet0/1</span>
+                <span class="interface-item" onclick="quickCommand('interface Serial0/0/0')">Serial0/0/0</span>
+                <span class="interface-item" onclick="quickCommand('interface Serial0/0/1')">Serial0/0/1</span>
+                <span class="interface-item" onclick="quickCommand('interface FastEthernet0/0')">FastEthernet0/0</span>
+                <span class="interface-item" onclick="quickCommand('interface FastEthernet0/1')">FastEthernet0/1</span>
+            </div>
+        </div>
+        
+        <div class="output" id="output">
+            ============================================================
+                   ROUTER CONSOLE SIMULATOR v2.0
+            ============================================================
+                   Sistema de Configuración de Router
+                        GitHub Pages Edition
+            ============================================================
+            
+            📍 Comandos disponibles: help, ? para ayuda
+            📍 Haz click en las interfaces para configurar
+            📍 Guarda tu configuración con "write memory"
+            
+        </div>
+        
+        <div class="input-line">
+            <span class="prompt" id="prompt">Router></span>
+            <input type="text" id="commandInput" placeholder="Ingresa comando..." autofocus>
+        </div>
+        
+        <div style="margin-top: 10px; text-align: center;">
+            <button class="btn" onclick="executeCommand()">▶ EJECUTAR</button>
+            <button class="btn" onclick="clearScreen()">🧹 LIMPIAR</button>
+            <button class="btn" onclick="showQuickHelp()">❓ AYUDA</button>
+            <button class="btn" onclick="saveConfig()">💾 GUARDAR</button>
+            <button class="btn" onclick="quickCommand('show running-config')">📋 VER CONFIG</button>
+            <button class="btn" onclick="quickCommand('show interfaces')">🔌 VER INTERFACES</button>
+        </div>
+        
+        <div class="status-bar">
+            <span>🔵 MODO: <span id="mode">Usuario</span></span>
+            <span>🟢 ESTADO: Conectado</span>
+            <span>📦 VERSIÓN: 2.0 Web</span>
+            <span id="configStatus">⚙️ CONFIG: No guardada</span>
+        </div>
+        
+        <div class="footer">
+            🚀 Router Console Simulator - Corre directamente en GitHub Pages | 
+            <a href="#" style="color: #00ff00;" onclick="quickCommand('help')">Comandos</a>
+        </div>
+    </div>
+
+    <script>
+        // ============= CLASE ROUTER CONSOLE =============
+        class RouterConsole {
+            constructor() {
+                this.hostname = "Router";
+                this.prompt = "Router>";
+                this.enableMode = false;
+                this.configMode = false;
+                this.interfaces = {};
+                this.routingTable = [];
+                this.currentInterface = null;
+                this.initInterfaces();
+            }
+
+            initInterfaces() {
+                const interfaces = [
+                    'GigabitEthernet0/0',
+                    'GigabitEthernet0/1',
+                    'Serial0/0/0',
+                    'Serial0/0/1',
+                    'FastEthernet0/0',
+                    'FastEthernet0/1'
+                ];
+                
+                interfaces.forEach(intf => {
+                    this.interfaces[intf] = {
+                        ip_address: 'unassigned',
+                        subnet_mask: '',
+                        status: 'administratively down',
+                        protocol: 'down',
+                        description: '',
+                        mtu: 1500
+                    };
+                });
+            }
+
+            updatePrompt() {
+                if (this.configMode) {
+                    this.prompt = `${this.hostname}(config)# `;
+                } else if (this.enableMode) {
+                    this.prompt = `${this.hostname}# `;
+                } else {
+                    this.prompt = `${this.hostname}> `;
+                }
+                document.getElementById('prompt').textContent = this.prompt;
+                document.getElementById('hostname-display').textContent = this.prompt;
+                
+                if (this.configMode) document.getElementById('mode').textContent = 'Configuración';
+                else if (this.enableMode) document.getElementById('mode').textContent = 'Privilegiado';
+                else document.getElementById('mode').textContent = 'Usuario';
+            }
+
+            processCommand(command) {
+                if (!command.trim()) return;
+                
+                const cmdParts = command.trim().split(' ');
+                const mainCmd = cmdParts[0].toLowerCase();
+                
+                // Help
+                if (mainCmd === 'help' || mainCmd === '?') {
+                    return this.showHelp();
+                }
+                // Enable
+                else if (mainCmd === 'enable') {
+                    this.enableMode = true;
+                    this.updatePrompt();
+                    return "🔓 Modo privilegiado activado";
+                }
+                // Disable
+                else if (mainCmd === 'disable') {
+                    this.enableMode = false;
+                    this.configMode = false;
+                    this.updatePrompt();
+                    return "🔒 Modo usuario activado";
+                }
+                // Configure terminal
+                else if (mainCmd === 'configure' && cmdParts[1] === 'terminal') {
+                    if (this.enableMode) {
+                        this.configMode = true;
+                        this.updatePrompt();
+                        return "⚙️ Modo configuración global activado";
+                    } else {
+                        return "% No tiene suficientes privilegios";
+                    }
+                }
+                // Exit
+                else if (mainCmd === 'exit') {
+                    if (this.configMode) {
+                        this.configMode = false;
+                        this.updatePrompt();
+                        return "⬅️ Saliendo de modo configuración";
+                    } else if (this.enableMode) {
+                        this.enableMode = false;
+                        this.updatePrompt();
+                        return "⬅️ Saliendo de modo privilegiado";
+                    }
+                }
+                // Hostname
+                else if (mainCmd === 'hostname' && this.configMode) {
+                    if (cmdParts.length > 1) {
+                        this.hostname = cmdParts[1];
+                        this.updatePrompt();
+                        return `✓ Hostname configurado: ${this.hostname}`;
+                    }
+                    return "% Comando incompleto";
+                }
+                // Interface
+                else if (mainCmd === 'interface' && this.configMode) {
+                    if (cmdParts.length > 1) {
+                        return this.configureInterface(cmdParts[1]);
+                    }
+                    return "% Se requiere nombre de interfaz";
+                }
+                // IP address
+                else if (mainCmd === 'ip' && cmdParts[1] === 'address' && this.configMode) {
+                    if (this.currentInterface) {
+                        if (cmdParts.length > 3) {
+                            this.interfaces[this.currentInterface].ip_address = cmdParts[2];
+                            this.interfaces[this.currentInterface].subnet_mask = cmdParts[3];
+                            return `✓ IP ${cmdParts[2]} ${cmdParts[3]} configurada en ${this.currentInterface}`;
+                        }
+                    }
+                    return "% Comando incompleto o no hay interfaz seleccionada";
+                }
+                // No shutdown
+                else if (mainCmd === 'no' && cmdParts[1] === 'shutdown' && this.configMode) {
+                    if (this.currentInterface) {
+                        this.interfaces[this.currentInterface].status = 'up';
+                        this.interfaces[this.currentInterface].protocol = 'up';
+                        return `✓ Interfaz ${this.currentInterface} activada 🟢`;
+                    }
+                }
+                // Shutdown
+                else if (mainCmd === 'shutdown' && this.configMode) {
+                    if (this.currentInterface) {
+                        this.interfaces[this.currentInterface].status = 'administratively down';
+                        this.interfaces[this.currentInterface].protocol = 'down';
+                        return `✓ Interfaz ${this.currentInterface} desactivada 🔴`;
+                    }
+                }
+                // Show commands
+                else if (mainCmd === 'show') {
+                    return this.showCommand(cmdParts.slice(1));
+                }
+                // Ping
+                else if (mainCmd === 'ping') {
+                    if (cmdParts.length > 1) {
+                        return this.ping(cmdParts[1]);
+                    }
+                    return "% Se requiere dirección IP";
+                }
+                // Clear
+                else if (mainCmd === 'clear') {
+                    return "CLEAR";
+                }
+                // Write memory
+                else if (mainCmd === 'write' && cmdParts[1] === 'memory') {
+                    document.getElementById('configStatus').innerHTML = '⚙️ CONFIG: Guardada ✓';
+                    return "✓ Configuración guardada en NVRAM";
+                }
+                
+                return `% Comando no reconocido: '${command}'`;
+            }
+
+            configureInterface(interfaceName) {
+                if (!this.interfaces[interfaceName]) {
+                    this.interfaces[interfaceName] = {
+                        ip_address: 'unassigned',
+                        subnet_mask: '',
+                        status: 'administratively down',
+                        protocol: 'down',
+                        description: '',
+                        mtu: 1500
+                    };
+                }
+                this.currentInterface = interfaceName;
+                return `Configurando interfaz ${interfaceName}\n${this.hostname}(config-if)# `;
+            }
+
+            ping(destination) {
+                let result = `\n🔄 Enviando 5 paquetes ICMP a ${destination}\n`;
+                result += "─".repeat(40) + "\n";
+                
+                for (let i = 1; i <= 5; i++) {
+                    const delay = (Math.random() * 1 + 0.5).toFixed(1);
+                    if (destination === '8.8.8.8' || destination.includes('192.168.')) {
+                        result += `✅ Respuesta desde ${destination}: bytes=32 tiempo=${delay}ms TTL=128\n`;
+                    } else {
+                        result += `⏳ Tiempo de espera agotado para ${destination}\n`;
+                    }
+                }
+                
+                result += "\n📊 Estadísticas de ping para " + destination + "\n";
+                result += "    Paquetes: enviados = 5, recibidos = 5, perdidos = 0 (0% perdidos)\n";
+                
+                return result;
+            }
+
+            showCommand(args) {
+                if (!args.length) return "% Comando 'show' incompleto";
+                
+                const subcmd = args[0].toLowerCase();
+                
+                if (subcmd === 'running-config') {
+                    return this.showRunningConfig();
+                }
+                else if (subcmd === 'interfaces') {
+                    return this.showInterfaces();
+                }
+                else if (subcmd === 'version') {
+                    return this.showVersion();
+                }
+                
+                return `% Comando 'show ${subcmd}' no reconocido`;
+            }
+
+            showRunningConfig() {
+                let config = `\n📋 Configuración actual:\n`;
+                config += "─".repeat(50) + "\n";
+                config += `hostname ${this.hostname}\n`;
+                config += "!\n";
+                
+                Object.entries(this.interfaces).forEach(([name, intf]) => {
+                    if (intf.ip_address !== 'unassigned') {
+                        config += `interface ${name}\n`;
+                        config += ` ip address ${intf.ip_address} ${intf.subnet_mask}\n`;
+                        config += ` ${intf.status === 'up' ? 'no shutdown' : 'shutdown'}\n`;
+                        if (intf.description) config += ` description ${intf.description}\n`;
+                        config += "!\n";
+                    }
+                });
+                
+                return config;
+            }
+
+            showInterfaces() {
+                let output = `\n🔌 INTERFACES:\n`;
+                output += "─".repeat(80) + "\n";
+                output += "INTERFAZ            IP ADDRESS         STATUS      PROTOCOL  DESCRIPTION\n";
+                output += "─".repeat(80) + "\n";
+                
+                Object.entries(this.interfaces).forEach(([name, config]) => {
+                    const ipDisplay = config.ip_address !== 'unassigned' ? 
+                        `${config.ip_address} ${config.subnet_mask}` : 'unassigned';
+                    const statusIcon = config.status === 'up' ? '🟢' : '🔴';
+                    output += `${name.padEnd(20)} ${ipDisplay.padEnd(18)} ${statusIcon} ${config.status.padEnd(10)} ${config.protocol.padEnd(8)} ${config.description}\n`;
+                });
+                
+                return output;
+            }
+
+            showVersion() {
+                return `
+╔══════════════════════════════════════════════════════╗
+║     ROUTER CONSOLE SIMULATOR v2.0 - WEB EDITION      ║
+╠══════════════════════════════════════════════════════╣
+║  Hostname: ${this.hostname.padEnd(35)}║
+║  Plataforma: GitHub Pages                            ║
+║  Modelo: Router-2811-Web                            ║
+║  Sistema: JavaScript Router OS 2.0                  ║
+║  GitHub Pages: Activo 🚀                            ║
+╚══════════════════════════════════════════════════════╝
+                `;
+            }
+
+            showHelp() {
+                return `
+╔══════════════════════════════════════════════════════╗
+║                    COMANDOS DISPONIBLES              ║
+╠══════════════════════════════════════════════════════╣
+║  🔑 BÁSICOS:                                        ║
+║    enable              - Modo privilegiado          ║
+║    disable             - Modo usuario               ║
+║    configure terminal  - Modo configuración         ║
+║    exit                - Salir del modo             ║
+║    clear               - Limpiar pantalla           ║
+║    help, ?             - Mostrar ayuda              ║
+╠══════════════════════════════════════════════════════╣
+║  ⚙️ CONFIGURACIÓN:                                  ║
+║    hostname NOMBRE     - Cambiar nombre del router  ║
+║    interface TIPO/NUM  - Configurar interfaz        ║
+║    ip address IP MASK  - Asignar dirección IP       ║
+║    no shutdown         - Activar interfaz           ║
+║    shutdown            - Desactivar interfaz        ║
+╠══════════════════════════════════════════════════════╣
+║  📡 COMANDOS SHOW:                                  ║
+║    show running-config - Ver configuración actual   ║
+║    show interfaces     - Ver estado de interfaces   ║
+║    show version        - Ver versión del sistema    ║
+╠══════════════════════════════════════════════════════╣
+║  🌐 UTILIDADES:                                     ║
+║    ping IP            - Probar conectividad         ║
+║    write memory       - Guardar configuración       ║
+╚══════════════════════════════════════════════════════╝
+
+💡 TIP: Haz click en cualquier interfaz para configurarla
+💡 TIP: Usa los botones rápidos para comandos comunes
+                `;
+            }
+        }
+
+        // ============= INICIALIZACIÓN =============
+        const router = new RouterConsole();
+        let outputDiv = document.getElementById('output');
+        let commandInput = document.getElementById('commandInput');
+
+        function appendToOutput(text) {
+            if (text === "CLEAR") {
+                clearScreen();
+            } else {
+                outputDiv.innerHTML += text + '\n';
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            }
+        }
+
+        function executeCommand() {
+            const command = commandInput.value;
+            if (command) {
+                appendToOutput(`${router.prompt}${command}`);
+                const result = router.processCommand(command);
+                if (result) {
+                    appendToOutput(result);
+                }
+                commandInput.value = '';
+            }
+        }
+
+        function clearScreen() {
+            outputDiv.innerHTML = `============================================================
+                   ROUTER CONSOLE SIMULATOR v2.0
+============================================================
+                   Sistema de Configuración de Router
+                        GitHub Pages Edition
+============================================================
+
+📍 Comandos disponibles: help, ? para ayuda
+📍 Haz click en las interfaces para configurar
+📍 Guarda tu configuración con "write memory"
+
+${router.prompt} `;
+        }
+
+        function showQuickHelp() {
+            appendToOutput(router.showHelp());
+        }
+
+        function saveConfig() {
+            document.getElementById('configStatus').innerHTML = '⚙️ CONFIG: Guardada ✓';
+            appendToOutput('✓ Configuración exportada exitosamente');
+        }
+
+        function quickCommand(cmd) {
+            commandInput.value = cmd;
+            executeCommand();
+        }
+
+        // Event Listeners
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                executeCommand();
+            }
+        });
+
+        // Auto-focus
+        commandInput.focus();
+
+        // Mensaje de bienvenida
+        setTimeout(() => {
+            appendToOutput('\n💡 BIENVENIDO! Router Console v2.0 Web');
+            appendToOutput('💡 Escribe "help" para ver todos los comandos');
+            appendToOutput('💡 Haz click en las interfaces para comenzar\n');
+        }, 500);
+    </script>
+</body>
+</html>
