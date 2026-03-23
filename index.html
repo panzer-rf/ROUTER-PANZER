@@ -1,590 +1,401 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Router Console Simulator Web</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #1a1a1a;
-            font-family: 'Courier New', monospace;
-            padding: 20px;
-            color: #00ff00;
-        }
-        
-        .terminal {
-            background: #000;
-            border: 2px solid #00ff00;
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 900px;
-            margin: 0 auto;
-            box-shadow: 0 0 20px rgba(0,255,0,0.2);
-        }
-        
-        .header {
-            border-bottom: 1px solid #00ff00;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 {
-            font-size: 1.5em;
-            color: #00ff00;
-        }
-        
-        .output {
-            background: #0a0a0a;
-            padding: 15px;
-            height: 400px;
-            overflow-y: auto;
-            border: 1px solid #00ff00;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.6;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-        }
-        
-        .input-line {
-            display: flex;
-            align-items: center;
-            background: #0a0a0a;
-            padding: 10px;
-            border: 1px solid #00ff00;
-        }
-        
-        .prompt {
-            color: #00ff00;
-            margin-right: 10px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        
-        #commandInput {
-            background: transparent;
-            border: none;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            flex: 1;
-            outline: none;
-        }
-        
-        .btn {
-            background: #000;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-            padding: 8px 15px;
-            margin: 5px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .btn:hover {
-            background: #00ff00;
-            color: #000;
-        }
-        
-        .status-bar {
-            margin-top: 20px;
-            padding: 10px;
-            background: #0a0a0a;
-            border: 1px solid #00ff00;
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-        }
-        
-        .interface-panel {
-            background: #0a0a0a;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #00ff00;
-        }
-        
-        .interface-item {
-            display: inline-block;
-            margin: 5px;
-            padding: 8px 12px;
-            border: 1px solid #00ff00;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-        
-        .interface-item:hover {
-            background: #00ff00;
-            color: #000;
-        }
-        
-        ::-webkit-scrollbar {
-            width: 10px;
-            background: #000;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #00ff00;
-            border: 1px solid #000;
-        }
-        
-        .command-history {
-            color: #00ff00;
-            margin-top: 5px;
-            font-size: 12px;
-        }
-        
-        .footer {
-            margin-top: 20px;
-            text-align: center;
-            color: #00ff00;
-            font-size: 12px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soldado Hacker: Guerra en la Nube</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at top, #10182b 0%, #080b15 55%, #02040a 100%);
+      color: #e9f2ff;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .game-shell {
+      width: min(980px, 100%);
+      border: 2px solid #31ffc2;
+      border-radius: 14px;
+      background: rgba(3, 8, 18, 0.95);
+      box-shadow: 0 0 30px rgba(49, 255, 194, 0.25);
+      overflow: hidden;
+    }
+    .header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #31ffc2;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: rgba(16, 32, 53, 0.6);
+    }
+    .header h1 { font-size: 1.2rem; color: #31ffc2; }
+    .hud { display: flex; gap: 16px; font-size: 0.9rem; }
+    .hud span strong { color: #8bc5ff; }
+    .arena-wrap {
+      position: relative;
+      padding: 14px;
+      border-bottom: 1px solid #21405a;
+      background: linear-gradient(180deg, #0a1b35 0%, #050a16 100%);
+    }
+    canvas {
+      width: 100%;
+      height: 420px;
+      border: 1px solid #2d5579;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #142f4e 0%, #0d1d35 50%, #050b15 100%);
+      display: block;
+    }
+    .controls {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #21405a;
+    }
+    .card {
+      border: 1px solid #2d5579;
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(14, 23, 35, 0.7);
+    }
+    .card h3 { color: #31ffc2; margin-bottom: 8px; font-size: 0.95rem; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    button {
+      border: 1px solid #31ffc2;
+      color: #31ffc2;
+      background: transparent;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.8rem;
+      transition: 0.2s;
+    }
+    button:hover { background: #31ffc2; color: #041422; }
+    .log {
+      min-height: 100px;
+      max-height: 140px;
+      overflow: auto;
+      padding: 12px 14px;
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: #b9dbff;
+      background: rgba(4, 8, 16, 0.95);
+    }
+    .log p { margin-bottom: 4px; }
+    .danger { color: #ff7296; }
+    .good { color: #74ffa0; }
+  </style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="header">
-            <h1>🔧 ROUTER CONSOLE v2.0</h1>
-            <span id="hostname-display" style="color: #00ff00; font-size: 18px;">Router></span>
+  <main class="game-shell">
+    <header class="header">
+      <h1>🪖 Soldado Hacker: Guerra en la Nube y Redes</h1>
+      <div class="hud">
+        <span>Integridad: <strong id="hp">100</strong></span>
+        <span>Puntuación: <strong id="score">0</strong></span>
+        <span>Oleada: <strong id="wave">1</strong></span>
+      </div>
+    </header>
+
+    <section class="arena-wrap">
+      <canvas id="arena" width="940" height="420"></canvas>
+    </section>
+
+    <section class="controls">
+      <div class="card">
+        <h3>🎮 Control del soldado</h3>
+        <p>Mueve con <strong>← →</strong>, dispara firewall con <strong>ESPACIO</strong>.</p>
+        <p>Defiende la nube de <span class="danger">virus, malware y ataques DDoS</span>.</p>
+      </div>
+      <div class="card">
+        <h3>⚡ Habilidades</h3>
+        <p><strong>Q</strong>: Escudo Zero-Trust (3s)</p>
+        <p><strong>E</strong>: Pulso anti-malware (limpia proyectiles)</p>
+        <div class="btn-row">
+          <button id="restartBtn">🔄 Reiniciar misión</button>
+          <button id="pulseBtn">💥 Pulso (E)</button>
         </div>
-        
-        <div class="interface-panel">
-            <h3>📡 INTERFACES DISPONIBLES</h3>
-            <div id="interfaces">
-                <span class="interface-item" onclick="quickCommand('interface GigabitEthernet0/0')">GigabitEthernet0/0</span>
-                <span class="interface-item" onclick="quickCommand('interface GigabitEthernet0/1')">GigabitEthernet0/1</span>
-                <span class="interface-item" onclick="quickCommand('interface Serial0/0/0')">Serial0/0/0</span>
-                <span class="interface-item" onclick="quickCommand('interface Serial0/0/1')">Serial0/0/1</span>
-                <span class="interface-item" onclick="quickCommand('interface FastEthernet0/0')">FastEthernet0/0</span>
-                <span class="interface-item" onclick="quickCommand('interface FastEthernet0/1')">FastEthernet0/1</span>
-            </div>
-        </div>
-        
-        <div class="output" id="output">
-            ============================================================
-                   ROUTER CONSOLE SIMULATOR v2.0
-            ============================================================
-                   Sistema de Configuración de Router
-                        GitHub Pages Edition
-            ============================================================
-            
-            📍 Comandos disponibles: help, ? para ayuda
-            📍 Haz click en las interfaces para configurar
-            📍 Guarda tu configuración con "write memory"
-            
-        </div>
-        
-        <div class="input-line">
-            <span class="prompt" id="prompt">Router></span>
-            <input type="text" id="commandInput" placeholder="Ingresa comando..." autofocus>
-        </div>
-        
-        <div style="margin-top: 10px; text-align: center;">
-            <button class="btn" onclick="executeCommand()">▶ EJECUTAR</button>
-            <button class="btn" onclick="clearScreen()">🧹 LIMPIAR</button>
-            <button class="btn" onclick="showQuickHelp()">❓ AYUDA</button>
-            <button class="btn" onclick="saveConfig()">💾 GUARDAR</button>
-            <button class="btn" onclick="quickCommand('show running-config')">📋 VER CONFIG</button>
-            <button class="btn" onclick="quickCommand('show interfaces')">🔌 VER INTERFACES</button>
-        </div>
-        
-        <div class="status-bar">
-            <span>🔵 MODO: <span id="mode">Usuario</span></span>
-            <span>🟢 ESTADO: Conectado</span>
-            <span>📦 VERSIÓN: 2.0 Web</span>
-            <span id="configStatus">⚙️ CONFIG: No guardada</span>
-        </div>
-        
-        <div class="footer">
-            🚀 Router Console Simulator - Corre directamente en GitHub Pages | 
-            <a href="#" style="color: #00ff00;" onclick="quickCommand('help')">Comandos</a>
-        </div>
-    </div>
+      </div>
+      <div class="card">
+        <h3>📡 Objetivo</h3>
+        <p>Sobrevive el mayor tiempo posible mientras sube la dificultad por oleadas.</p>
+        <p>Cada enemigo eliminado aumenta tu score y la presión de la red hostil.</p>
+      </div>
+    </section>
 
-    <script>
-        // ============= CLASE ROUTER CONSOLE =============
-        class RouterConsole {
-            constructor() {
-                this.hostname = "Router";
-                this.prompt = "Router>";
-                this.enableMode = false;
-                this.configMode = false;
-                this.interfaces = {};
-                this.routingTable = [];
-                this.currentInterface = null;
-                this.initInterfaces();
-            }
+    <section class="log" id="log"></section>
+  </main>
 
-            initInterfaces() {
-                const interfaces = [
-                    'GigabitEthernet0/0',
-                    'GigabitEthernet0/1',
-                    'Serial0/0/0',
-                    'Serial0/0/1',
-                    'FastEthernet0/0',
-                    'FastEthernet0/1'
-                ];
-                
-                interfaces.forEach(intf => {
-                    this.interfaces[intf] = {
-                        ip_address: 'unassigned',
-                        subnet_mask: '',
-                        status: 'administratively down',
-                        protocol: 'down',
-                        description: '',
-                        mtu: 1500
-                    };
-                });
-            }
+  <script>
+    const canvas = document.getElementById('arena');
+    const ctx = canvas.getContext('2d');
 
-            updatePrompt() {
-                if (this.configMode) {
-                    this.prompt = `${this.hostname}(config)# `;
-                } else if (this.enableMode) {
-                    this.prompt = `${this.hostname}# `;
-                } else {
-                    this.prompt = `${this.hostname}> `;
-                }
-                document.getElementById('prompt').textContent = this.prompt;
-                document.getElementById('hostname-display').textContent = this.prompt;
-                
-                if (this.configMode) document.getElementById('mode').textContent = 'Configuración';
-                else if (this.enableMode) document.getElementById('mode').textContent = 'Privilegiado';
-                else document.getElementById('mode').textContent = 'Usuario';
-            }
+    const hpUI = document.getElementById('hp');
+    const scoreUI = document.getElementById('score');
+    const waveUI = document.getElementById('wave');
+    const logUI = document.getElementById('log');
 
-            processCommand(command) {
-                if (!command.trim()) return;
-                
-                const cmdParts = command.trim().split(' ');
-                const mainCmd = cmdParts[0].toLowerCase();
-                
-                // Help
-                if (mainCmd === 'help' || mainCmd === '?') {
-                    return this.showHelp();
-                }
-                // Enable
-                else if (mainCmd === 'enable') {
-                    this.enableMode = true;
-                    this.updatePrompt();
-                    return "🔓 Modo privilegiado activado";
-                }
-                // Disable
-                else if (mainCmd === 'disable') {
-                    this.enableMode = false;
-                    this.configMode = false;
-                    this.updatePrompt();
-                    return "🔒 Modo usuario activado";
-                }
-                // Configure terminal
-                else if (mainCmd === 'configure' && cmdParts[1] === 'terminal') {
-                    if (this.enableMode) {
-                        this.configMode = true;
-                        this.updatePrompt();
-                        return "⚙️ Modo configuración global activado";
-                    } else {
-                        return "% No tiene suficientes privilegios";
-                    }
-                }
-                // Exit
-                else if (mainCmd === 'exit') {
-                    if (this.configMode) {
-                        this.configMode = false;
-                        this.updatePrompt();
-                        return "⬅️ Saliendo de modo configuración";
-                    } else if (this.enableMode) {
-                        this.enableMode = false;
-                        this.updatePrompt();
-                        return "⬅️ Saliendo de modo privilegiado";
-                    }
-                }
-                // Hostname
-                else if (mainCmd === 'hostname' && this.configMode) {
-                    if (cmdParts.length > 1) {
-                        this.hostname = cmdParts[1];
-                        this.updatePrompt();
-                        return `✓ Hostname configurado: ${this.hostname}`;
-                    }
-                    return "% Comando incompleto";
-                }
-                // Interface
-                else if (mainCmd === 'interface' && this.configMode) {
-                    if (cmdParts.length > 1) {
-                        return this.configureInterface(cmdParts[1]);
-                    }
-                    return "% Se requiere nombre de interfaz";
-                }
-                // IP address
-                else if (mainCmd === 'ip' && cmdParts[1] === 'address' && this.configMode) {
-                    if (this.currentInterface) {
-                        if (cmdParts.length > 3) {
-                            this.interfaces[this.currentInterface].ip_address = cmdParts[2];
-                            this.interfaces[this.currentInterface].subnet_mask = cmdParts[3];
-                            return `✓ IP ${cmdParts[2]} ${cmdParts[3]} configurada en ${this.currentInterface}`;
-                        }
-                    }
-                    return "% Comando incompleto o no hay interfaz seleccionada";
-                }
-                // No shutdown
-                else if (mainCmd === 'no' && cmdParts[1] === 'shutdown' && this.configMode) {
-                    if (this.currentInterface) {
-                        this.interfaces[this.currentInterface].status = 'up';
-                        this.interfaces[this.currentInterface].protocol = 'up';
-                        return `✓ Interfaz ${this.currentInterface} activada 🟢`;
-                    }
-                }
-                // Shutdown
-                else if (mainCmd === 'shutdown' && this.configMode) {
-                    if (this.currentInterface) {
-                        this.interfaces[this.currentInterface].status = 'administratively down';
-                        this.interfaces[this.currentInterface].protocol = 'down';
-                        return `✓ Interfaz ${this.currentInterface} desactivada 🔴`;
-                    }
-                }
-                // Show commands
-                else if (mainCmd === 'show') {
-                    return this.showCommand(cmdParts.slice(1));
-                }
-                // Ping
-                else if (mainCmd === 'ping') {
-                    if (cmdParts.length > 1) {
-                        return this.ping(cmdParts[1]);
-                    }
-                    return "% Se requiere dirección IP";
-                }
-                // Clear
-                else if (mainCmd === 'clear') {
-                    return "CLEAR";
-                }
-                // Write memory
-                else if (mainCmd === 'write' && cmdParts[1] === 'memory') {
-                    document.getElementById('configStatus').innerHTML = '⚙️ CONFIG: Guardada ✓';
-                    return "✓ Configuración guardada en NVRAM";
-                }
-                
-                return `% Comando no reconocido: '${command}'`;
-            }
+    const keys = {};
+    const state = {
+      player: { x: canvas.width / 2 - 18, y: canvas.height - 56, w: 36, h: 36, speed: 5 },
+      bullets: [],
+      enemies: [],
+      enemyShots: [],
+      hp: 100,
+      score: 0,
+      wave: 1,
+      over: false,
+      shieldUntil: 0,
+      lastShot: 0,
+      lastSpawn: 0
+    };
 
-            configureInterface(interfaceName) {
-                if (!this.interfaces[interfaceName]) {
-                    this.interfaces[interfaceName] = {
-                        ip_address: 'unassigned',
-                        subnet_mask: '',
-                        status: 'administratively down',
-                        protocol: 'down',
-                        description: '',
-                        mtu: 1500
-                    };
-                }
-                this.currentInterface = interfaceName;
-                return `Configurando interfaz ${interfaceName}\n${this.hostname}(config-if)# `;
-            }
+    function log(message, className = '') {
+      const row = document.createElement('p');
+      row.className = className;
+      row.textContent = `> ${message}`;
+      logUI.prepend(row);
+      while (logUI.children.length > 14) logUI.removeChild(logUI.lastChild);
+    }
 
-            ping(destination) {
-                let result = `\n🔄 Enviando 5 paquetes ICMP a ${destination}\n`;
-                result += "─".repeat(40) + "\n";
-                
-                for (let i = 1; i <= 5; i++) {
-                    const delay = (Math.random() * 1 + 0.5).toFixed(1);
-                    if (destination === '8.8.8.8' || destination.includes('192.168.')) {
-                        result += `✅ Respuesta desde ${destination}: bytes=32 tiempo=${delay}ms TTL=128\n`;
-                    } else {
-                        result += `⏳ Tiempo de espera agotado para ${destination}\n`;
-                    }
-                }
-                
-                result += "\n📊 Estadísticas de ping para " + destination + "\n";
-                result += "    Paquetes: enviados = 5, recibidos = 5, perdidos = 0 (0% perdidos)\n";
-                
-                return result;
-            }
+    function spawnEnemy() {
+      const types = [
+        { kind: 'Virus', color: '#ff6c87', hp: 1, speed: 1.2, damage: 8 },
+        { kind: 'Malware', color: '#ffbb66', hp: 2, speed: 0.9, damage: 12 },
+        { kind: 'DDoS Bot', color: '#e67cff', hp: 1, speed: 1.7, damage: 6 }
+      ];
+      const t = types[Math.floor(Math.random() * types.length)];
+      state.enemies.push({
+        x: Math.random() * (canvas.width - 30),
+        y: -20,
+        w: 30,
+        h: 30,
+        hp: t.hp + Math.floor(state.wave / 2),
+        speed: t.speed + state.wave * 0.06,
+        damage: t.damage,
+        color: t.color,
+        kind: t.kind,
+        shotCooldown: Math.random() * 160 + 80
+      });
+    }
 
-            showCommand(args) {
-                if (!args.length) return "% Comando 'show' incompleto";
-                
-                const subcmd = args[0].toLowerCase();
-                
-                if (subcmd === 'running-config') {
-                    return this.showRunningConfig();
-                }
-                else if (subcmd === 'interfaces') {
-                    return this.showInterfaces();
-                }
-                else if (subcmd === 'version') {
-                    return this.showVersion();
-                }
-                
-                return `% Comando 'show ${subcmd}' no reconocido`;
-            }
+    function fire() {
+      const now = performance.now();
+      if (now - state.lastShot < 150 || state.over) return;
+      state.lastShot = now;
+      state.bullets.push({ x: state.player.x + 16, y: state.player.y - 4, w: 4, h: 12, speed: 7 });
+    }
 
-            showRunningConfig() {
-                let config = `\n📋 Configuración actual:\n`;
-                config += "─".repeat(50) + "\n";
-                config += `hostname ${this.hostname}\n`;
-                config += "!\n";
-                
-                Object.entries(this.interfaces).forEach(([name, intf]) => {
-                    if (intf.ip_address !== 'unassigned') {
-                        config += `interface ${name}\n`;
-                        config += ` ip address ${intf.ip_address} ${intf.subnet_mask}\n`;
-                        config += ` ${intf.status === 'up' ? 'no shutdown' : 'shutdown'}\n`;
-                        if (intf.description) config += ` description ${intf.description}\n`;
-                        config += "!\n";
-                    }
-                });
-                
-                return config;
-            }
+    function pulse() {
+      if (state.over) return;
+      if (!state.enemyShots.length) {
+        log('Pulso anti-malware activado, pero no había proyectiles enemigos.');
+        return;
+      }
+      const removed = state.enemyShots.length;
+      state.enemyShots = [];
+      state.score += removed * 2;
+      log(`Pulso anti-malware neutralizó ${removed} paquetes hostiles.`, 'good');
+    }
 
-            showInterfaces() {
-                let output = `\n🔌 INTERFACES:\n`;
-                output += "─".repeat(80) + "\n";
-                output += "INTERFAZ            IP ADDRESS         STATUS      PROTOCOL  DESCRIPTION\n";
-                output += "─".repeat(80) + "\n";
-                
-                Object.entries(this.interfaces).forEach(([name, config]) => {
-                    const ipDisplay = config.ip_address !== 'unassigned' ? 
-                        `${config.ip_address} ${config.subnet_mask}` : 'unassigned';
-                    const statusIcon = config.status === 'up' ? '🟢' : '🔴';
-                    output += `${name.padEnd(20)} ${ipDisplay.padEnd(18)} ${statusIcon} ${config.status.padEnd(10)} ${config.protocol.padEnd(8)} ${config.description}\n`;
-                });
-                
-                return output;
-            }
+    function activateShield() {
+      if (state.over) return;
+      state.shieldUntil = performance.now() + 3000;
+      log('Escudo Zero-Trust activo por 3 segundos.', 'good');
+    }
 
-            showVersion() {
-                return `
-╔══════════════════════════════════════════════════════╗
-║     ROUTER CONSOLE SIMULATOR v2.0 - WEB EDITION      ║
-╠══════════════════════════════════════════════════════╣
-║  Hostname: ${this.hostname.padEnd(35)}║
-║  Plataforma: GitHub Pages                            ║
-║  Modelo: Router-2811-Web                            ║
-║  Sistema: JavaScript Router OS 2.0                  ║
-║  GitHub Pages: Activo 🚀                            ║
-╚══════════════════════════════════════════════════════╝
-                `;
-            }
+    function rectsOverlap(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
 
-            showHelp() {
-                return `
-╔══════════════════════════════════════════════════════╗
-║                    COMANDOS DISPONIBLES              ║
-╠══════════════════════════════════════════════════════╣
-║  🔑 BÁSICOS:                                        ║
-║    enable              - Modo privilegiado          ║
-║    disable             - Modo usuario               ║
-║    configure terminal  - Modo configuración         ║
-║    exit                - Salir del modo             ║
-║    clear               - Limpiar pantalla           ║
-║    help, ?             - Mostrar ayuda              ║
-╠══════════════════════════════════════════════════════╣
-║  ⚙️ CONFIGURACIÓN:                                  ║
-║    hostname NOMBRE     - Cambiar nombre del router  ║
-║    interface TIPO/NUM  - Configurar interfaz        ║
-║    ip address IP MASK  - Asignar dirección IP       ║
-║    no shutdown         - Activar interfaz           ║
-║    shutdown            - Desactivar interfaz        ║
-╠══════════════════════════════════════════════════════╣
-║  📡 COMANDOS SHOW:                                  ║
-║    show running-config - Ver configuración actual   ║
-║    show interfaces     - Ver estado de interfaces   ║
-║    show version        - Ver versión del sistema    ║
-╠══════════════════════════════════════════════════════╣
-║  🌐 UTILIDADES:                                     ║
-║    ping IP            - Probar conectividad         ║
-║    write memory       - Guardar configuración       ║
-╚══════════════════════════════════════════════════════╝
+    function update() {
+      if (state.over) return;
 
-💡 TIP: Haz click en cualquier interfaz para configurarla
-💡 TIP: Usa los botones rápidos para comandos comunes
-                `;
-            }
+      if (keys.ArrowLeft) state.player.x -= state.player.speed;
+      if (keys.ArrowRight) state.player.x += state.player.speed;
+      state.player.x = Math.max(0, Math.min(canvas.width - state.player.w, state.player.x));
+
+      state.bullets.forEach(b => b.y -= b.speed);
+      state.bullets = state.bullets.filter(b => b.y + b.h > 0);
+
+      const now = performance.now();
+      const spawnRate = Math.max(300, 1050 - state.wave * 45);
+      if (now - state.lastSpawn > spawnRate) {
+        spawnEnemy();
+        state.lastSpawn = now;
+      }
+
+      state.enemies.forEach(e => {
+        e.y += e.speed;
+        e.shotCooldown -= 1;
+        if (e.shotCooldown <= 0) {
+          state.enemyShots.push({ x: e.x + e.w / 2 - 3, y: e.y + e.h, w: 6, h: 12, speed: 3 + state.wave * 0.05 });
+          e.shotCooldown = Math.random() * 140 + 70;
         }
+      });
 
-        // ============= INICIALIZACIÓN =============
-        const router = new RouterConsole();
-        let outputDiv = document.getElementById('output');
-        let commandInput = document.getElementById('commandInput');
+      state.enemyShots.forEach(s => s.y += s.speed);
+      state.enemyShots = state.enemyShots.filter(s => s.y < canvas.height + 20);
 
-        function appendToOutput(text) {
-            if (text === "CLEAR") {
-                clearScreen();
-            } else {
-                outputDiv.innerHTML += text + '\n';
-                outputDiv.scrollTop = outputDiv.scrollHeight;
+      for (const bullet of state.bullets) {
+        for (const enemy of state.enemies) {
+          if (rectsOverlap(bullet, enemy)) {
+            bullet.y = -100;
+            enemy.hp -= 1;
+            if (enemy.hp <= 0) {
+              enemy.y = canvas.height + 100;
+              state.score += 10;
+              if (state.score % 120 === 0) {
+                state.wave += 1;
+                log(`La red hostil escala a oleada ${state.wave}.`, 'danger');
+              }
             }
+            break;
+          }
         }
+      }
 
-        function executeCommand() {
-            const command = commandInput.value;
-            if (command) {
-                appendToOutput(`${router.prompt}${command}`);
-                const result = router.processCommand(command);
-                if (result) {
-                    appendToOutput(result);
-                }
-                commandInput.value = '';
-            }
-        }
+      state.enemies = state.enemies.filter(e => e.y < canvas.height + 30);
 
-        function clearScreen() {
-            outputDiv.innerHTML = `============================================================
-                   ROUTER CONSOLE SIMULATOR v2.0
-============================================================
-                   Sistema de Configuración de Router
-                        GitHub Pages Edition
-============================================================
-
-📍 Comandos disponibles: help, ? para ayuda
-📍 Haz click en las interfaces para configurar
-📍 Guarda tu configuración con "write memory"
-
-${router.prompt} `;
-        }
-
-        function showQuickHelp() {
-            appendToOutput(router.showHelp());
-        }
-
-        function saveConfig() {
-            document.getElementById('configStatus').innerHTML = '⚙️ CONFIG: Guardada ✓';
-            appendToOutput('✓ Configuración exportada exitosamente');
-        }
-
-        function quickCommand(cmd) {
-            commandInput.value = cmd;
-            executeCommand();
-        }
-
-        // Event Listeners
-        commandInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                executeCommand();
-            }
+      const shieldActive = performance.now() < state.shieldUntil;
+      if (!shieldActive) {
+        state.enemyShots.forEach(shot => {
+          if (rectsOverlap(shot, state.player)) {
+            shot.y = canvas.height + 100;
+            state.hp -= 8;
+            log('Has recibido daño de tráfico malicioso.', 'danger');
+          }
         });
 
-        // Auto-focus
-        commandInput.focus();
+        state.enemies.forEach(enemy => {
+          if (rectsOverlap(enemy, state.player) || enemy.y + enemy.h > canvas.height - 2) {
+            state.hp -= enemy.damage;
+            enemy.y = canvas.height + 100;
+            log(`Impacto crítico de ${enemy.kind}.`, 'danger');
+          }
+        });
+      }
 
-        // Mensaje de bienvenida
-        setTimeout(() => {
-            appendToOutput('\n💡 BIENVENIDO! Router Console v2.0 Web');
-            appendToOutput('💡 Escribe "help" para ver todos los comandos');
-            appendToOutput('💡 Haz click en las interfaces para comenzar\n');
-        }, 500);
-    </script>
+      if (state.hp <= 0) {
+        state.hp = 0;
+        state.over = true;
+        log('MISIÓN FALLIDA: la nube fue comprometida.', 'danger');
+      }
+
+      hpUI.textContent = state.hp;
+      scoreUI.textContent = state.score;
+      waveUI.textContent = state.wave;
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle = 'rgba(95, 160, 235, 0.15)';
+      for (let i = 0; i < canvas.width; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
+      for (let j = 0; j < canvas.height; j += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, j);
+        ctx.lineTo(canvas.width, j);
+        ctx.stroke();
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGrid();
+
+      const shieldActive = performance.now() < state.shieldUntil;
+      ctx.fillStyle = '#50b5ff';
+      ctx.fillRect(state.player.x, state.player.y, state.player.w, state.player.h);
+      ctx.fillStyle = '#d7ecff';
+      ctx.fillText('🪖', state.player.x + 8, state.player.y + 24);
+
+      if (shieldActive) {
+        ctx.strokeStyle = 'rgba(80, 255, 180, 0.9)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(state.player.x + 18, state.player.y + 18, 28, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = '#88e2ff';
+      state.bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+
+      state.enemies.forEach(e => {
+        ctx.fillStyle = e.color;
+        ctx.fillRect(e.x, e.y, e.w, e.h);
+        ctx.fillStyle = '#111';
+        ctx.fillText('☠', e.x + 7, e.y + 20);
+      });
+
+      ctx.fillStyle = '#ff6c87';
+      state.enemyShots.forEach(s => ctx.fillRect(s.x, s.y, s.w, s.h));
+
+      if (state.over) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ff8aa6';
+        ctx.font = 'bold 32px Courier New';
+        ctx.fillText('MISIÓN FALLIDA', canvas.width / 2 - 145, canvas.height / 2 - 10);
+        ctx.font = '18px Courier New';
+        ctx.fillStyle = '#dbe9ff';
+        ctx.fillText(`Puntuación final: ${state.score}`, canvas.width / 2 - 120, canvas.height / 2 + 25);
+      }
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function restart() {
+      state.player.x = canvas.width / 2 - 18;
+      state.bullets = [];
+      state.enemies = [];
+      state.enemyShots = [];
+      state.hp = 100;
+      state.score = 0;
+      state.wave = 1;
+      state.over = false;
+      state.shieldUntil = 0;
+      state.lastShot = 0;
+      state.lastSpawn = 0;
+      hpUI.textContent = 100;
+      scoreUI.textContent = 0;
+      waveUI.textContent = 1;
+      log('Misión reiniciada. Defiende la nube central.', 'good');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+      if (e.key === ' ') {
+        e.preventDefault();
+        fire();
+      }
+      if (e.key.toLowerCase() === 'e') pulse();
+      if (e.key.toLowerCase() === 'q') activateShield();
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+    });
+
+    document.getElementById('restartBtn').addEventListener('click', restart);
+    document.getElementById('pulseBtn').addEventListener('click', pulse);
+
+    log('Comando inicial: proteger nodos cloud de ciberataques.', 'good');
+    loop();
+  </script>
 </body>
 </html>
